@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 # ---------------------------------------------------------
 # PAGE CONFIGURATION
@@ -68,6 +69,7 @@ page = st.sidebar.radio(
         "Cell Division Explorer",
         "Tumor Growth",
         "Treatment Analysis",
+        "Participant Simulation",
         "About Project"
     ],
     key="main_navigation"
@@ -530,6 +532,124 @@ elif page == "About Project":
         "biological mechanism of cancer and must not be used for medical diagnosis "
         "or treatment decisions."
     )
+
+
+# --------------------------------------------------
+# PARTICIPANT SIMULATION PAGE
+# --------------------------------------------------
+
+elif page == "Participant Simulation":
+
+    page_header(
+        "👥 Participant Simulation",
+        "Compare fictional cancer cell population scenarios"
+    )
+
+    st.info(
+        "Educational demonstration only. All cell counts and "
+        "growth rates are randomly generated and are not real "
+        "patient measurements or clinical predictions."
+    )
+
+    # Initialize participant storage
+    if "participants" not in st.session_state:
+        st.session_state.participants = []
+
+    st.subheader("Add Participants")
+
+    with st.form("participant_form"):
+        participant_name = st.text_input(
+            "Enter participant name"
+        )
+
+        add_button = st.form_submit_button(
+            "Add Participant and Generate Cells"
+        )
+
+        if add_button:
+            if not participant_name.strip():
+                st.warning("Please enter a name.")
+
+            elif len(st.session_state.participants) >= 5:
+                st.warning("Maximum of 5 participants allowed.")
+
+            elif any(
+                p["name"].lower() == participant_name.strip().lower()
+                for p in st.session_state.participants
+            ):
+                st.warning("This name has already been added.")
+
+            else:
+                new_participant = {
+                    "id": f"P{len(st.session_state.participants) + 1:03d}",
+                    "name": participant_name.strip(),
+                    "cells": random.randint(10, 1000),
+                    "rate": random.uniform(0.03, 0.12)
+                }
+
+                st.session_state.participants.append(
+                    new_participant
+                )
+
+                st.success("Participant added successfully!")
+
+    st.divider()
+
+    st.subheader("Participant Cell Population")
+
+    participants = st.session_state.participants
+
+    if participants:
+
+        for p in participants:
+            col1, col2, col3 = st.columns(3)
+
+            col1.metric("Participant", p["name"])
+            col2.metric("Participant ID", p["id"])
+            col3.metric("Initial Cell Count", f'{p["cells"]:,}')
+
+        st.divider()
+
+        st.subheader("Compare Population Growth")
+
+        days = np.arange(0, 31)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+
+        for p in participants:
+            population = (
+                p["cells"] * np.exp(p["rate"] * days)
+            )
+
+            ax.plot(
+                days,
+                population,
+                label=p["name"]
+            )
+
+        ax.set_title("Simulated Cell Population Growth")
+        ax.set_xlabel("Time (Days)")
+        ax.set_ylabel("Simulated Cell Population")
+        ax.legend()
+        ax.grid(alpha=0.3)
+
+        st.pyplot(fig)
+        plt.close(fig)
+
+        st.caption(
+            "Growth curves use hypothetical exponential growth "
+            "rates generated randomly for demonstration."
+        )
+
+        if st.button("Clear All Participants"):
+            st.session_state.participants = []
+            st.rerun()
+
+    else:
+        st.warning(
+            "No participants added yet. Enter a name above "
+            "to generate the first simulated population."
+        )
 
 # ---------------------------------------------------------
 # FOOTER
