@@ -561,6 +561,13 @@ elif page == "Participant Simulation":
         participant_name = st.text_input(
             "Enter participant name"
         )
+        participant_cells = st.number_input(
+            "Enter initial cell population",
+            min_value=10,
+            max_value=1000,
+            value=100,
+            step=10
+        )
 
         add_button = st.form_submit_button(
             "Add Participant and Generate Cells"
@@ -583,7 +590,7 @@ elif page == "Participant Simulation":
                 new_participant = {
                     "id": f"P{len(st.session_state.participants) + 1:03d}",
                     "name": participant_name.strip(),
-                    "cells": random.randint(10, 1000),
+                    "cells": int(participant_cells),
                     "rate": random.uniform(0.03, 0.12)
                 }
 
